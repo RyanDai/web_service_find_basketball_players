@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <div>
+        <h2>All Players</h2>
+        <ul id="player" />
+    </div>
+    <div>
+        <h3>Search or Delete</h3>
+        <select id="field">
+            <option>PlayerID</option>
+            <option>PlayerFullName</option>
+        </select>
+        <input type="text" id="playerinfo" name="playerinfo" size="10" />
+        <input type="button" value="search" onclick="find()" />
+        <input type="button" value="delete" onclick="del()" />
+        <p id="playerlist" />
+    </div>
+    <div>
+        <h2>Player Registration</h2>
+        <form name="registerform" onsubmit="return checkForm()">
+            <label for="pid">Registration ID :</label><input type="text" id="id" name="id" required><br>
+            <label for="pfname">Player Name :</label><input type="text" id="fname" name="fname" required><br>
+            <label for="ptname">Team Name :</label><input type="text" id="tname" name="tname" required><br>
+            <label for="pdob">Date Of Birth :</label><input type="text" id="dob" name="dob" required><br>
+            <input type="submit" value="Player Registration" onclick="add()" />
+        </form>
+    </div>
+    <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-2.0.3.min.js"></script>
+    <script>
+        var uri = 'api/player';
+        $(document).ready(function () {
+            $.ajax({
+                type: 'GET',
+                url: uri,
+                success: function (data) {
+                    displayData(data);
+                }
+            })
+        });
+        function formatItem(item) {
+            //alert(item.DateOfBirth);
+            return item.registeration_ID + ',' + item.Player_name + ',' + item.Team_name + ',' + FormatDate(item.Date_of_birth);
+        }
+
+        function FormatDate(date) {
+            return date.substring(0, 10)
+        }
+
+        function displayData(data) {
+            $('ul').empty();
+            $.each(data, function (key, item) {
+                $('<li>', { text: formatItem(item) }).appendTo($('#player'));
+            });
+        }
+
+        function find() {
+            var field = $('#field').val();
+            var value = $('#playerinfo').val();
+            $.ajax({
+                type: 'GET',
+                url: uri + '?' + 'field=' + field + '&' + 'input=' + value,
+                //url: uri +'/'+field+'/'+value,
+                success: function (data) {
+                    $('p').empty();
+                    $.each(data, function (key, item) {
+                        //alert(key);
+                        $('<li>', { text: formatItem(item) }).appendTo($('#playerlist'));
+                    });
+                },
+                error: function (jqXHR, textStatus, err) {
+                    $('#playerlist').text('Error' + err);
+                }
+            })
+        }
+
+        function del() {
+            var field = $('#field').val();
+            var value = $('#playerinfo').val();
+            $.ajax({
+                type: 'DELETE',
+                url: uri + '?' + 'field=' + field + '&' + 'input=' + value,
+                success: function (data) {
+                    displayData(data);
+                },
+                error: function (jqXHR, textStatus, err) {
+                    $('#playerlist').text('Error' + err);
+                }
+            })
+        }
+        function add() {
+            var id = $('#id').val();
+            var fname = $('#fname').val();
+            
+            var tname = $('#tname').val();
+            var dob = $('#dob').val();
+            console.log(tname)
+            console.log(uri + '/?' + 'ID=' + id + '&name=' + fname + '&team=' + tname + '&date=' + dob)
+            //console.log(uri + '/?' + 'ID=' + id + '&name=' + fname + '&team=' + tname + '&date=' + dob);
+            $.ajax({
+                type: 'POST',
+                url: uri + '/?' + 'ID=' + id + '&name=' + fname + '&team=' + tname + '&date=' + dob,
+                
+                //data:$('form').serialize(),
+                success: function (data) {
+                    displayData(data);
+                },
+            })
+        }
+    </script>
+
+    <script type="text/javascript">
+    function checkForm(form)
+    {
+        var pid = document.forms["registerform"]["id"].value;
+        var pfname = document.forms["registerform"]["fname"].value;
+        var ptname = document.forms["registerform"]["tname"].value;
+        var pdob = document.forms["registerform"]["dob"].value;
+        if (pid == "" || pfname == "" || ptname == "" || pdob == ""||pid==null||pfname==null||ptname==null||pdob==null)
+        {
+            alert("Input can not be null");
+            return false;
+        }
+    }
+    if (document.getElementById('playerinfo').value === null)
+    {
+        alter ('input can not be null')
+    }
+    </script>
+</body>
+</html>
